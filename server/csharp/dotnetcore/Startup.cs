@@ -1,7 +1,6 @@
 using System;
 using System.Text.Json;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 
 namespace coinapi
 {
@@ -9,20 +8,20 @@ namespace coinapi
     {
         public void Configure(IApplicationBuilder app)
         {
-            app.UseRouting();
-
-            app.UseEndpoints(endpoints =>
+            app.Run(async context =>
             {
-                endpoints.MapPost("/coin", async context =>
+                if (context.Request.Path.StartsWithSegments("/coin", StringComparison.Ordinal))
                 {
-                    context.Response.ContentType = "application/json";
-                    context.Response.StatusCode = StatusCodes.Status200OK;
                     var request = await JsonSerializer.DeserializeAsync<CoinRequest>(context.Request.Body, cancellationToken: context.RequestAborted);
                     var check = request.win ? 1 : 0;
                     var rnd = new Random().Next(0, 2);
-                    var result = JsonSerializer.Serialize(new CoinRequest { win = check == rnd });
-                    await context.Response.WriteAsync(result);
-                });
+
+                    context.Response.StatusCode = 200;
+                    context.Response.ContentType = "application/json";
+                    //context.Response.ContentLength = _bufferSize;
+
+                    await JsonSerializer.SerializeAsync(context.Response.Body, new CoinRequest { win = check == rnd });
+                }
             });
         }
     }
