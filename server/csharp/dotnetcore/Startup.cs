@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Text.Json;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -18,10 +19,13 @@ namespace coinapi
                     context.Response.ContentType = "application/json";
                     context.Response.StatusCode = StatusCodes.Status200OK;
                     var request = await JsonSerializer.DeserializeAsync<CoinRequest>(context.Request.Body, cancellationToken: context.RequestAborted);
-                    var result = JsonSerializer.Serialize(new CoinRequest { 
+                    
+
+                    
+                    await context.Response.WriteAsJsonAsync(new CoinRequest
+                    {
                         win = request.win == new Random().NextDouble() >= 0.5
-                    });
-                    await context.Response.WriteAsync(result);
+                    }, cancellationToken: context.RequestAborted);
                 });
             });
         }
